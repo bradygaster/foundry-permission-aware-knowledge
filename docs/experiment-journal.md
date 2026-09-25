@@ -1,5 +1,11 @@
 # Grounded knowledge experiment journal
 
+> [!IMPORTANT]
+> **ALL AZURE RESOURCES AND IDENTIFIERS SHOWN IN THIS REPOSITORY ARE
+> FICTIONAL PLACEHOLDERS, NOT LIVE OR REAL RESOURCES.** Authenticated validation
+> used explicitly configured private resources; their identifiers are
+> intentionally not recorded here.
+
 ## Outcome and acceptance criteria
 
 Implemented `samples/permission-aware-knowledge/` as a compact .NET 8 console
@@ -75,11 +81,9 @@ the synthesis and deferred improvements.
   insufficient evidence, zero citations, and no restricted content.
 - `npm test`: 38/38 repository tests passed, including the new sample structure
   and required-journal-heading check.
-- On 2026-09-25, authenticated validation ran against subscription
-  `104482b7-4580-4de0-9453-0fc78df0b80e`, tenant
-  `72f988bf-86f1-41af-91ab-2d7cd011db47`, Search service
-  `fsq-knowledge-swc-1ntj32`, Foundry project
-  `squad-imagegen-swc-1ntj32-proj`, and the existing `gpt-5-mini` deployment.
+- On 2026-09-25, authenticated validation ran against explicitly configured
+  private Azure resources. Subscription, tenant, service, project, deployment,
+  endpoint, and resource identifiers are intentionally omitted.
 - Current Microsoft documentation and live API probes established the supported
   knowledge route as Azure AI Search Foundry IQ knowledge-base retrieval:
   `POST /knowledgebases('<name>')/retrieve?api-version=2026-08-01-preview`.
@@ -95,16 +99,20 @@ the synthesis and deferred improvements.
 - Live output was sanitized to statuses, citation counts, and document IDs. No
   access tokens, response bodies, secrets, or restricted content were recorded.
 
-## Authenticated resource evidence
+## Fictional configuration shape
 
-| Resource | Resource ID / endpoint |
+The values below document only the required configuration shape. They are
+environment-variable placeholders, not evidence of any live resource.
+
+| Resource | Fictional placeholder |
 |---|---|
-| Foundry account | `/subscriptions/104482b7-4580-4de0-9453-0fc78df0b80e/resourceGroups/rg-squad-imagegen/providers/Microsoft.CognitiveServices/accounts/squad-imagegen-swc-1ntj32` |
-| Foundry project | `/subscriptions/104482b7-4580-4de0-9453-0fc78df0b80e/resourceGroups/rg-squad-imagegen/providers/Microsoft.CognitiveServices/accounts/squad-imagegen-swc-1ntj32/projects/squad-imagegen-swc-1ntj32-proj` |
-| Project endpoint | `https://squad-imagegen-swc-1ntj32.services.ai.azure.com/api/projects/squad-imagegen-swc-1ntj32-proj` |
-| Model deployment | `/subscriptions/104482b7-4580-4de0-9453-0fc78df0b80e/resourceGroups/rg-squad-imagegen/providers/Microsoft.CognitiveServices/accounts/squad-imagegen-swc-1ntj32/deployments/gpt-5-mini` |
-| Search service | `/subscriptions/104482b7-4580-4de0-9453-0fc78df0b80e/resourceGroups/rg-squad-imagegen/providers/Microsoft.Search/searchServices/fsq-knowledge-swc-1ntj32` |
-| Search endpoint | `https://fsq-knowledge-swc-1ntj32.search.windows.net` |
+| Subscription | `$AZURE_SUBSCRIPTION_ID` |
+| Tenant | `$AZURE_TENANT_ID` |
+| Resource group | `$AZURE_RESOURCE_GROUP` |
+| Foundry project endpoint | `$FOUNDRY_PROJECT_ENDPOINT` |
+| Model deployment | `$AZURE_OPENAI_DEPLOYMENT` |
+| Search service | `$AZURE_SEARCH_SERVICE_NAME` |
+| Search endpoint | `https://<your-search-service>.search.windows.net` |
 | Search index | `permission-aware-documents` |
 | Knowledge source | `permission-aware-kb-source` |
 | Knowledge base | `permission-aware-kb` |
@@ -113,12 +121,15 @@ the synthesis and deferred improvements.
 
 - Azure AI Search is Free tier, one replica, and one partition. The sample uses
   the Free semantic ranking allowance.
-- Each successful authorized evaluation makes one pay-as-you-go model call.
+- Each successful authorized evaluation makes one pay-as-you-go call to the
+  explicitly configured model deployment.
   Unauthorized, unknown, and quarantined-only requests stop before model
-  execution. Exact currency cost varies with the current `gpt-5-mini` token
-  price; this validation used one model call after retrieval.
-- `scripts/cleanup-foundry-iq.sh` deletes only the sample Search service. It does
-  not delete the shared Foundry account, project, or model deployment.
+  execution. Exact currency cost varies with the configured model's token price;
+  authenticated validation used one model call after retrieval.
+- `scripts/cleanup-foundry-iq.sh` deletes only the explicitly configured sample
+  Search service. It refuses to run without subscription, resource-group, and
+  Search-service variables and does not delete a Foundry account, project, or
+  model deployment.
 - The Foundry IQ knowledge-base, `filterAddOn`, and extractive output features
   used here are on the `2026-08-01-preview` API. They require migration review
   when a newer preview or GA contract supersedes this version.

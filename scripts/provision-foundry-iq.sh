@@ -1,15 +1,32 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-subscription_id="${AZURE_SUBSCRIPTION_ID:-104482b7-4580-4de0-9453-0fc78df0b80e}"
-resource_group="${AZURE_RESOURCE_GROUP:-rg-squad-imagegen}"
-search_name="${AZURE_SEARCH_SERVICE_NAME:-fsq-knowledge-swc-1ntj32}"
+: "${AZURE_SUBSCRIPTION_ID:?Set AZURE_SUBSCRIPTION_ID to the subscription you explicitly intend to use.}"
+: "${AZURE_RESOURCE_GROUP:?Set AZURE_RESOURCE_GROUP to an existing resource group you explicitly intend to use.}"
+: "${AZURE_SEARCH_SERVICE_NAME:?Set AZURE_SEARCH_SERVICE_NAME to a new or existing Search service you explicitly intend to manage.}"
+: "${AZURE_OPERATOR_PRINCIPAL_ID:?Set AZURE_OPERATOR_PRINCIPAL_ID to the object ID that should receive Search roles.}"
+: "${FOUNDRY_PROJECT_ENDPOINT:?Set FOUNDRY_PROJECT_ENDPOINT to your Foundry project endpoint.}"
+: "${AZURE_OPENAI_DEPLOYMENT:?Set AZURE_OPENAI_DEPLOYMENT to your model deployment name.}"
+
+subscription_id="$AZURE_SUBSCRIPTION_ID"
+resource_group="$AZURE_RESOURCE_GROUP"
+search_name="$AZURE_SEARCH_SERVICE_NAME"
 knowledge_base="${AZURE_SEARCH_KNOWLEDGE_BASE:-permission-aware-kb}"
 api_version="${AZURE_SEARCH_API_VERSION:-2026-08-01-preview}"
-operator_id="${AZURE_OPERATOR_PRINCIPAL_ID:-$(az ad signed-in-user show --query id -o tsv)}"
+operator_id="$AZURE_OPERATOR_PRINCIPAL_ID"
 
 az account set --subscription "$subscription_id"
 az provider register --namespace Microsoft.Search --wait
+search_service_contributor_role_id="$(
+  az role definition list --name "Search Service Contributor" --query '[0].id' -o tsv
+)"
+search_index_data_contributor_role_id="$(
+  az role definition list --name "Search Index Data Contributor" --query '[0].id' -o tsv
+)"
+search_index_data_reader_role_id="$(
+  az role definition list --name "Search Index Data Reader" --query '[0].id' -o tsv
+)"
+
 if ! az search service show \
   --resource-group "$resource_group" \
   --name "$search_name" \
@@ -17,7 +34,12 @@ if ! az search service show \
   az deployment group create \
     --resource-group "$resource_group" \
     --template-file infra/main.bicep \
-    --parameters searchServiceName="$search_name" operatorPrincipalId="$operator_id" \
+    --parameters \
+      searchServiceName="$search_name" \
+      operatorPrincipalId="$operator_id" \
+      searchServiceContributorRoleDefinitionId="$search_service_contributor_role_id" \
+      searchIndexDataContributorRoleDefinitionId="$search_index_data_contributor_role_id" \
+      searchIndexDataReaderRoleDefinitionId="$search_index_data_reader_role_id" \
     --output none
 fi
 
@@ -134,6 +156,6 @@ cat <<EOF
 AZURE_SEARCH_ENDPOINT=$endpoint
 AZURE_SEARCH_KNOWLEDGE_BASE=$knowledge_base
 AZURE_SEARCH_API_VERSION=$api_version
-FOUNDRY_PROJECT_ENDPOINT=https://squad-imagegen-swc-1ntj32.services.ai.azure.com/api/projects/squad-imagegen-swc-1ntj32-proj
-AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+FOUNDRY_PROJECT_ENDPOINT=$FOUNDRY_PROJECT_ENDPOINT
+AZURE_OPENAI_DEPLOYMENT=$AZURE_OPENAI_DEPLOYMENT
 EOF

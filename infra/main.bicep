@@ -6,6 +6,15 @@ param searchServiceName string
 @description('Object ID of the developer or CI principal that provisions and tests the data plane.')
 param operatorPrincipalId string
 
+@description('Runtime-resolved resource ID for the Search Service Contributor role.')
+param searchServiceContributorRoleDefinitionId string
+
+@description('Runtime-resolved resource ID for the Search Index Data Contributor role.')
+param searchIndexDataContributorRoleDefinitionId string
+
+@description('Runtime-resolved resource ID for the Search Index Data Reader role.')
+param searchIndexDataReaderRoleDefinitionId string
+
 param location string = resourceGroup().location
 
 resource search 'Microsoft.Search/searchServices@2025-05-01' = {
@@ -27,43 +36,33 @@ resource search 'Microsoft.Search/searchServices@2025-05-01' = {
   }
 }
 
-var searchServiceContributorRoleId = subscriptionResourceId(
-  'Microsoft.Authorization/roleDefinitions',
-  '7ca78c08-252a-4471-8644-bb5ff32d4ba0')
-var searchIndexDataContributorRoleId = subscriptionResourceId(
-  'Microsoft.Authorization/roleDefinitions',
-  '8ebe5a00-799e-43f5-93ac-243d3dce84a7')
-var searchIndexDataReaderRoleId = subscriptionResourceId(
-  'Microsoft.Authorization/roleDefinitions',
-  '1407120a-92aa-4202-b7e9-c0e197c71c8f')
-
 resource serviceContributor 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(search.id, operatorPrincipalId, searchServiceContributorRoleId)
+  name: guid(search.id, operatorPrincipalId, searchServiceContributorRoleDefinitionId)
   scope: search
   properties: {
     principalId: operatorPrincipalId
     principalType: 'User'
-    roleDefinitionId: searchServiceContributorRoleId
+    roleDefinitionId: searchServiceContributorRoleDefinitionId
   }
 }
 
 resource dataContributor 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(search.id, operatorPrincipalId, searchIndexDataContributorRoleId)
+  name: guid(search.id, operatorPrincipalId, searchIndexDataContributorRoleDefinitionId)
   scope: search
   properties: {
     principalId: operatorPrincipalId
     principalType: 'User'
-    roleDefinitionId: searchIndexDataContributorRoleId
+    roleDefinitionId: searchIndexDataContributorRoleDefinitionId
   }
 }
 
 resource dataReader 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(search.id, operatorPrincipalId, searchIndexDataReaderRoleId)
+  name: guid(search.id, operatorPrincipalId, searchIndexDataReaderRoleDefinitionId)
   scope: search
   properties: {
     principalId: operatorPrincipalId
     principalType: 'User'
-    roleDefinitionId: searchIndexDataReaderRoleId
+    roleDefinitionId: searchIndexDataReaderRoleDefinitionId
   }
 }
 
