@@ -1,9 +1,15 @@
 # Permission-aware grounded knowledge
 
+> [!IMPORTANT]
+> **ALL AZURE RESOURCES AND IDENTIFIERS SHOWN IN THIS REPOSITORY ARE
+> FICTIONAL PLACEHOLDERS, NOT LIVE OR REAL RESOURCES.** Configure your own
+> subscription, tenant, resource group, service names, and endpoints explicitly
+> before running any opt-in Azure command.
+
 This .NET 8 console sample answers questions only from documents the caller is
 allowed to read. It supports deterministic offline execution and an authenticated
 Microsoft Foundry path using Azure AI Search Foundry IQ knowledge-base retrieval
-plus a Foundry project `gpt-5-mini` deployment.
+plus an explicitly configured Foundry model deployment.
 
 ## Security and grounding behavior
 
@@ -65,19 +71,28 @@ The provisioning script then creates the index, knowledge source, and knowledge
 base through the current `2026-08-01-preview` data-plane API.
 
 ```sh
-az login --tenant 72f988bf-86f1-41af-91ab-2d7cd011db47
-az account set --subscription 104482b7-4580-4de0-9453-0fc78df0b80e
+export AZURE_TENANT_ID="<your-tenant-id>"
+export AZURE_SUBSCRIPTION_ID="<your-subscription-id>"
+export AZURE_RESOURCE_GROUP="<your-resource-group>"
+export AZURE_SEARCH_SERVICE_NAME="<globally-unique-search-service-name>"
+export AZURE_OPERATOR_PRINCIPAL_ID="<your-operator-object-id>"
+export FOUNDRY_PROJECT_ENDPOINT="https://<your-foundry-account>.services.ai.azure.com/api/projects/<your-foundry-project>"
+export AZURE_OPENAI_DEPLOYMENT="<your-model-deployment>"
+
+az login --tenant "$AZURE_TENANT_ID"
 ./scripts/provision-foundry-iq.sh
 ```
 
-The default deployment uses:
+The script requires the target subscription, resource group, Search service,
+operator principal, Foundry project endpoint, and model deployment to be set
+explicitly. It prints the resulting runtime configuration:
 
 ```sh
-export AZURE_SEARCH_ENDPOINT="https://fsq-knowledge-swc-1ntj32.search.windows.net"
+export AZURE_SEARCH_ENDPOINT="https://<your-search-service>.search.windows.net"
 export AZURE_SEARCH_KNOWLEDGE_BASE="permission-aware-kb"
 export AZURE_SEARCH_API_VERSION="2026-08-01-preview"
-export FOUNDRY_PROJECT_ENDPOINT="https://squad-imagegen-swc-1ntj32.services.ai.azure.com/api/projects/squad-imagegen-swc-1ntj32-proj"
-export AZURE_OPENAI_DEPLOYMENT="gpt-5-mini"
+export FOUNDRY_PROJECT_ENDPOINT="https://<your-foundry-account>.services.ai.azure.com/api/projects/<your-foundry-project>"
+export AZURE_OPENAI_DEPLOYMENT="<your-model-deployment>"
 ```
 
 All runtime authentication uses `DefaultAzureCredential`. Search tokens use
@@ -123,14 +138,19 @@ content. Model HTTP 429 responses use bounded `Retry-After`/exponential backoff.
 
 The sample Search service uses the Free tier, one replica, one partition, and
 free semantic ranking allowance. The authorized live scenario makes one
-pay-as-you-go `gpt-5-mini` Responses API call; closed scenarios do not call the
-model. Current model pricing and token usage determine that variable charge.
+pay-as-you-go Responses API call to the configured model deployment; closed
+scenarios do not call the model. Current model pricing and token usage determine
+that variable charge.
 
 Delete only this sample's Search service with:
 
 ```sh
+export AZURE_SUBSCRIPTION_ID="<your-subscription-id>"
+export AZURE_RESOURCE_GROUP="<your-resource-group>"
+export AZURE_SEARCH_SERVICE_NAME="<your-search-service>"
 ./scripts/cleanup-foundry-iq.sh
 ```
 
-The existing Foundry account, project, and `gpt-5-mini` deployment are shared
-resources and are intentionally never deleted by the cleanup script.
+The cleanup script refuses to run unless all three target variables are set.
+The configured Foundry account, project, and model deployment are intentionally
+never deleted by the cleanup script.

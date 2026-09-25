@@ -1,9 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-subscription_id="${AZURE_SUBSCRIPTION_ID:-104482b7-4580-4de0-9453-0fc78df0b80e}"
-resource_group="${AZURE_RESOURCE_GROUP:-rg-squad-imagegen}"
-search_name="${AZURE_SEARCH_SERVICE_NAME:-fsq-knowledge-swc-1ntj32}"
+: "${AZURE_SUBSCRIPTION_ID:?Set AZURE_SUBSCRIPTION_ID to the subscription containing the Search service to delete.}"
+: "${AZURE_RESOURCE_GROUP:?Set AZURE_RESOURCE_GROUP to the resource group containing the Search service to delete.}"
+: "${AZURE_SEARCH_SERVICE_NAME:?Set AZURE_SEARCH_SERVICE_NAME to the exact Search service to delete.}"
+
+subscription_id="$AZURE_SUBSCRIPTION_ID"
+resource_group="$AZURE_RESOURCE_GROUP"
+search_name="$AZURE_SEARCH_SERVICE_NAME"
 
 az search service delete \
   --subscription "$subscription_id" \

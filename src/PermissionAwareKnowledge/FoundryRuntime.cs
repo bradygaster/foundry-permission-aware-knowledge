@@ -23,8 +23,7 @@ public sealed record FoundryRuntimeOptions(
             Environment.GetEnvironmentVariable("AZURE_SEARCH_API_VERSION")
                 ?? "2026-08-01-preview",
             RequireUri("FOUNDRY_PROJECT_ENDPOINT"),
-            Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT")
-                ?? "gpt-5-mini",
+            Require("AZURE_OPENAI_DEPLOYMENT"),
             "https://search.azure.com/.default",
             "https://ai.azure.com/.default");
 
