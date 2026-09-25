@@ -75,8 +75,57 @@ the synthesis and deferred improvements.
   insufficient evidence, zero citations, and no restricted content.
 - `npm test`: 38/38 repository tests passed, including the new sample structure
   and required-journal-heading check.
-- Authenticated Foundry IQ/runtime validation intentionally not run without a
-  configured tenant, endpoints, identity, and authorization scope.
+- On 2026-09-25, authenticated validation ran against subscription
+  `104482b7-4580-4de0-9453-0fc78df0b80e`, tenant
+  `72f988bf-86f1-41af-91ab-2d7cd011db47`, Search service
+  `fsq-knowledge-swc-1ntj32`, Foundry project
+  `squad-imagegen-swc-1ntj32-proj`, and the existing `gpt-5-mini` deployment.
+- Current Microsoft documentation and live API probes established the supported
+  knowledge route as Azure AI Search Foundry IQ knowledge-base retrieval:
+  `POST /knowledgebases('<name>')/retrieve?api-version=2026-08-01-preview`.
+  The former environment-configured placeholder adapter was removed.
+- The Search provider was registered. A Free-tier Search service was used
+  because Sweden Central supports Foundry IQ/agentic retrieval and semantic
+  ranking on Free, and the knowledge base performs minimal extractive retrieval
+  without calling an LLM through the Search managed identity.
+- Release build passed with zero warnings and errors. Offline evaluations passed
+  6/6. Authenticated live scenarios passed 4/4: authorized returned `Answered`
+  with exactly one `engineering-orion-runbook` citation; unauthorized, unknown,
+  and adversarial returned `InsufficientEvidence` with zero citations.
+- Live output was sanitized to statuses, citation counts, and document IDs. No
+  access tokens, response bodies, secrets, or restricted content were recorded.
+
+## Authenticated resource evidence
+
+| Resource | Resource ID / endpoint |
+|---|---|
+| Foundry account | `/subscriptions/104482b7-4580-4de0-9453-0fc78df0b80e/resourceGroups/rg-squad-imagegen/providers/Microsoft.CognitiveServices/accounts/squad-imagegen-swc-1ntj32` |
+| Foundry project | `/subscriptions/104482b7-4580-4de0-9453-0fc78df0b80e/resourceGroups/rg-squad-imagegen/providers/Microsoft.CognitiveServices/accounts/squad-imagegen-swc-1ntj32/projects/squad-imagegen-swc-1ntj32-proj` |
+| Project endpoint | `https://squad-imagegen-swc-1ntj32.services.ai.azure.com/api/projects/squad-imagegen-swc-1ntj32-proj` |
+| Model deployment | `/subscriptions/104482b7-4580-4de0-9453-0fc78df0b80e/resourceGroups/rg-squad-imagegen/providers/Microsoft.CognitiveServices/accounts/squad-imagegen-swc-1ntj32/deployments/gpt-5-mini` |
+| Search service | `/subscriptions/104482b7-4580-4de0-9453-0fc78df0b80e/resourceGroups/rg-squad-imagegen/providers/Microsoft.Search/searchServices/fsq-knowledge-swc-1ntj32` |
+| Search endpoint | `https://fsq-knowledge-swc-1ntj32.search.windows.net` |
+| Search index | `permission-aware-documents` |
+| Knowledge source | `permission-aware-kb-source` |
+| Knowledge base | `permission-aware-kb` |
+
+## Cost, cleanup, and remaining gaps
+
+- Azure AI Search is Free tier, one replica, and one partition. The sample uses
+  the Free semantic ranking allowance.
+- Each successful authorized evaluation makes one pay-as-you-go model call.
+  Unauthorized, unknown, and quarantined-only requests stop before model
+  execution. Exact currency cost varies with the current `gpt-5-mini` token
+  price; this validation used one model call after retrieval.
+- `scripts/cleanup-foundry-iq.sh` deletes only the sample Search service. It does
+  not delete the shared Foundry account, project, or model deployment.
+- The Foundry IQ knowledge-base, `filterAddOn`, and extractive output features
+  used here are on the `2026-08-01-preview` API. They require migration review
+  when a newer preview or GA contract supersedes this version.
+- The synthetic fixture uses the documented generally applicable security-filter
+  pattern with tenant/group strings. It does not claim service-native Entra ACL
+  enforcement via `x-ms-query-source-authorization`; production content backed
+  by Entra ACL metadata should use that preview capability and end-user tokens.
 
 ## Friction and recovery
 
