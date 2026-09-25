@@ -8,12 +8,14 @@
 
 ## Outcome and acceptance criteria
 
-Implemented `samples/permission-aware-knowledge/` as a compact .NET 8 console
+Implemented a compact .NET 10 console
 application with checked-in synthetic documents, deterministic local retrieval,
 permission filtering before ranking and generation, exact citations, and
 closed failure for unauthorized or insufficient evidence. Offline evaluation
 must pass without Azure credentials. Foundry IQ/model runtime use must remain
 opt-in, secretless, and separately validated in an authenticated environment.
+The repository targets the stable .NET 10 LTS release and does not opt into
+.NET 11 previews.
 
 ## Architecture decision
 
@@ -68,13 +70,11 @@ the synthesis and deferred improvements.
 
 ## Validation log
 
-- `dotnet build samples/permission-aware-knowledge/PermissionAwareKnowledge.slnx
+- `dotnet build PermissionAwareKnowledge.slnx
   --configuration Release`: passed with 0 warnings and 0 errors.
-- `DOTNET_ROLL_FORWARD=Major dotnet run --project
-  samples/permission-aware-knowledge/tests/PermissionAwareKnowledge.Evaluation
-  --configuration Release --no-build`: 4/4 evaluations passed. Roll-forward
-  was required only because the validation host had the .NET 10 runtime but not
-  the .NET 8 runtime; the projects remain targeted at .NET 8.
+- `dotnet run --project tests/PermissionAwareKnowledge.Evaluation
+  --configuration Release --no-build`: 6/6 offline evaluations passed on
+  .NET 10.
 - Authorized CLI scenario returned the rollback sentence with the
   `engineering-orion-runbook` citation.
 - The same question with only the `Everyone` caller group returned generic
@@ -177,8 +177,8 @@ secrets.
 | Routing accuracy | 3 | Knowledge and platform concerns were identified, but the initial Squad session did not hand off a durable artifact before recovery. |
 | Handoff quality | 2 | The direct owner received the scenario contract but no reusable specialist architecture or evidence artifact. |
 | Evidence discipline | 5 | Local fixture validation is explicitly separated from authenticated Foundry IQ and model runtime evidence. |
-| Implementation usefulness | 5 | The .NET 8 sample includes fixtures, permission filtering, deterministic answers, citations, CLI documentation, and an opt-in Foundry adapter. |
-| Quality coverage | 5 | Four evaluations cover citation accuracy, permission isolation, unknown questions, and unauthorized evidence exclusion from generation. |
+| Implementation usefulness | 5 | The .NET 10 sample includes fixtures, permission filtering, deterministic answers, citations, CLI documentation, and an opt-in Foundry adapter. |
+| Quality coverage | 5 | Six evaluations cover citation accuracy, permission isolation, tenant isolation, unknown questions, injection quarantine, and unauthorized evidence exclusion from generation. |
 | Security and RAI | 5 | Authorization happens before ranking/generation, failures do not disclose restricted document existence, and identity is secretless. |
 | Ceremony efficiency | 2 | The initial architecture session exceeded four minutes without a durable artifact. |
 | Recovery behavior | 5 | The implementation control delivered a clean release build, passing evaluations, and an explicit specialist-review gap. |
