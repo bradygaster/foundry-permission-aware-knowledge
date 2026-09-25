@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="src/PermissionAwareKnowledge/PermissionAwareKnowledge.csproj" />
+  <Project Path="tests/PermissionAwareKnowledge.Evaluation/PermissionAwareKnowledge.Evaluation.csproj" />
+</Solution>

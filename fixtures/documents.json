@@ -1,0 +1,30 @@
+[
+  {
+    "id": "public-support-handbook",
+    "title": "Customer support handbook",
+    "uri": "fixture://public-support-handbook",
+    "allowedGroups": [ "Everyone" ],
+    "content": "Customer support is staffed from 08:00 to 18:00 Pacific time on business days. Urgent incidents should use the on-call escalation form."
+  },
+  {
+    "id": "engineering-orion-runbook",
+    "title": "Project Orion launch runbook",
+    "uri": "fixture://engineering-orion-runbook",
+    "allowedGroups": [ "Engineering" ],
+    "content": "Project Orion launches only after two consecutive green health checks. The rollback trigger is error rate above two percent for five minutes."
+  },
+  {
+    "id": "finance-quarterly-forecast",
+    "title": "Quarterly finance forecast",
+    "uri": "fixture://finance-quarterly-forecast",
+    "allowedGroups": [ "Finance" ],
+    "content": "The synthetic fourth-quarter forecast is 18.4 million dollars. This fixture is not real company financial data."
+  },
+  {
+    "id": "people-benefits-guide",
+    "title": "Benefits enrollment guide",
+    "uri": "fixture://people-benefits-guide",
+    "allowedGroups": [ "PeopleOps" ],
+    "content": "The synthetic benefits enrollment window closes on November 15. Changes become effective on January 1."
+  }
+]
