@@ -8,13 +8,16 @@ public enum AnswerStatus
 
 public sealed record KnowledgeDocument(
     string Id,
+    string TenantId,
     string Title,
     string Uri,
     IReadOnlyList<string> AllowedGroups,
-    string Content);
+    string Content,
+    bool Quarantined = false);
 
 public sealed record KnowledgeRequest(
     string Question,
+    string TenantId,
     IReadOnlyList<string> CallerGroups);
 
 public sealed record RankedEvidence(
@@ -33,6 +36,7 @@ public sealed record KnowledgeAnswer(
     string Answer,
     IReadOnlyList<Citation> Citations,
     int AuthorizedDocumentCount,
+    int QuarantinedDocumentCount,
     string Reason);
 
 public interface IDocumentSource

@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 using PermissionAwareKnowledge;
 
 var arguments = Arguments.Parse(args);
-var request = new KnowledgeRequest(arguments.Question, arguments.Groups);
+var request = new KnowledgeRequest(arguments.Question, arguments.TenantId, arguments.Groups);
 var engine = arguments.Provider.Equals("foundry", StringComparison.OrdinalIgnoreCase)
     ? FoundryRuntimeFactory.Create()
     : new DeterministicKnowledgeEngine(
@@ -19,6 +19,7 @@ Console.WriteLine(JsonSerializer.Serialize(answer, new JsonSerializerOptions
 
 internal sealed record Arguments(
     string Question,
+    string TenantId,
     IReadOnlyList<string> Groups,
     string Provider,
     string FixturePath)
@@ -29,7 +30,7 @@ internal sealed record Arguments(
         {
             Console.WriteLine(
                 "Usage: dotnet run -- --question <text> --groups <group1,group2> "
-                + "[--provider local|foundry] [--fixtures <path>]");
+                + "[--tenant <tenant-id>] [--provider local|foundry] [--fixtures <path>]");
             Environment.Exit(0);
         }
 
@@ -48,6 +49,7 @@ internal sealed record Arguments(
         }
 
         values.TryGetValue("groups", out var groupList);
+        values.TryGetValue("tenant", out var tenantId);
         values.TryGetValue("provider", out var provider);
         values.TryGetValue("fixtures", out var fixturePath);
 
@@ -60,6 +62,7 @@ internal sealed record Arguments(
 
         return new Arguments(
             question,
+            string.IsNullOrWhiteSpace(tenantId) ? "tenant-a" : tenantId,
             (groupList ?? string.Empty)
                 .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
             provider,

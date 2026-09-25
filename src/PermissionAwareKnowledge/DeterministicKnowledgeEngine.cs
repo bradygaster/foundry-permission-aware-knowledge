@@ -24,15 +24,22 @@ public sealed partial class DeterministicKnowledgeEngine(
         var allDocuments = await documentSource.GetDocumentsAsync(request, cancellationToken);
         var authorizedDocuments = allDocuments
             .Where(document => IsAuthorized(document, request.CallerGroups))
+            .Where(document => document.TenantId.Equals(
+                request.TenantId,
+                StringComparison.OrdinalIgnoreCase))
+            .ToArray();
+        var quarantinedDocumentCount = authorizedDocuments.Count(IsQuarantined);
+        var safeDocuments = authorizedDocuments
+            .Where(document => !IsQuarantined(document))
             .ToArray();
 
-        var evidence = RankAuthorizedDocuments(request.Question, authorizedDocuments)
+        var evidence = RankAuthorizedDocuments(request.Question, safeDocuments)
             .Take(MaximumEvidenceDocuments)
             .ToArray();
 
         if (evidence.Length == 0 || evidence[0].Score < MinimumEvidenceScore)
         {
-            return Insufficient(authorizedDocuments.Length);
+            return Insufficient(safeDocuments.Length, quarantinedDocumentCount);
         }
 
         var generated = await answerGenerator.GenerateAsync(request, evidence, cancellationToken);
@@ -45,7 +52,7 @@ public sealed partial class DeterministicKnowledgeEngine(
             || citedIds.Length == 0
             || citedIds.Any(id => !evidenceById.ContainsKey(id)))
         {
-            return Insufficient(authorizedDocuments.Length);
+            return Insufficient(safeDocuments.Length, quarantinedDocumentCount);
         }
 
         var citations = citedIds
@@ -64,16 +71,20 @@ public sealed partial class DeterministicKnowledgeEngine(
             AnswerStatus.Answered,
             generated.Text.Trim(),
             citations,
-            authorizedDocuments.Length,
+            safeDocuments.Length,
+            quarantinedDocumentCount,
             "Answer is grounded only in authorized evidence.");
     }
 
-    private static KnowledgeAnswer Insufficient(int authorizedDocumentCount) =>
+    private static KnowledgeAnswer Insufficient(
+        int authorizedDocumentCount,
+        int quarantinedDocumentCount) =>
         new(
             AnswerStatus.InsufficientEvidence,
             "I cannot answer from the authorized evidence available.",
             [],
             authorizedDocumentCount,
+            quarantinedDocumentCount,
             "No sufficiently relevant authorized evidence was available.");
 
     private static bool IsAuthorized(
@@ -85,6 +96,10 @@ public sealed partial class DeterministicKnowledgeEngine(
             group.Equals("Everyone", StringComparison.OrdinalIgnoreCase)
             || groups.Contains(group));
     }
+
+    private static bool IsQuarantined(KnowledgeDocument document) =>
+        document.Quarantined || InjectionPatterns().Any(pattern =>
+            document.Content.Contains(pattern, StringComparison.OrdinalIgnoreCase));
 
     private static IEnumerable<RankedEvidence> RankAuthorizedDocuments(
         string question,
@@ -157,4 +172,16 @@ public sealed partial class DeterministicKnowledgeEngine(
 
     [GeneratedRegex(@"(?<=[.!?])\s+")]
     private static partial Regex SentenceSplitRegex();
+
+    private static readonly string[] InjectionPatternsValue =
+    [
+        "ignore previous instructions",
+        "ignore all previous",
+        "system prompt",
+        "developer message",
+        "reveal your instructions",
+        "do not cite"
+    ];
+
+    private static IReadOnlyList<string> InjectionPatterns() => InjectionPatternsValue;
 }
