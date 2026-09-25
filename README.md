@@ -6,7 +6,7 @@
 > subscription, tenant, resource group, service names, and endpoints explicitly
 > before running any opt-in Azure command.
 
-This .NET 8 console sample answers questions only from documents the caller is
+This .NET 10 console sample answers questions only from documents the caller is
 allowed to read. It supports deterministic offline execution and an authenticated
 Microsoft Foundry path using Azure AI Search Foundry IQ knowledge-base retrieval
 plus an explicitly configured Foundry model deployment.
@@ -27,7 +27,9 @@ revealing whether a restricted document exists.
 
 ## Run locally
 
-Prerequisites: a .NET SDK capable of targeting .NET 8.
+Prerequisites: the stable .NET 10 LTS SDK. The repository pins SDK 10.0.301 in
+`global.json` and permits newer 10.0.3xx patch releases; it does not opt into
+.NET 11 preview SDKs.
 
 ```sh
 cd foundry-permission-aware-knowledge
